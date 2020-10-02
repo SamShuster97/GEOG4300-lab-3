@@ -317,8 +317,10 @@ restaurant quality? Why or why not? What’s one additional improvement
 you would make to this analysis?
 
 {I think this is a valid and objective way to analyze the data provided
-in order to come up with a hierarchy. If there were one improvement I
-would make, it would be to analyze sentiment at the sentence level as
-opposed to the word level. I think there is more chance for error by the
-computer when interpretting individual words. Certain reviews may be
-categorized as negative despite the contrary being true.}
+in order to come up with a hierarchy. It takes many relevant factors
+into account so the analysis is pretty balanced. If there were one
+improvement I would make, it would be to analyze sentiment at the
+sentence level as opposed to the word level. I think there is more
+chance for error by the computer when interpretting individual words.
+Certain reviews may be categorized as negative despite the contrary
+being true.}
