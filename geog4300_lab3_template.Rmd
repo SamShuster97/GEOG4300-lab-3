@@ -12,8 +12,11 @@ In the second half of this lab, you'll do some basic text mining and sentiment a
 
 ```{r}
 library(tidyverse)
+#install.packages("tidytext")
 library(tidytext)
 library(knitr)
+#install.packages("gutenbergr")
+library(gutenbergr)
 
 yelp_data<-read_csv("data/charlotte_restaurants.csv")
 ```
@@ -35,42 +38,112 @@ kable(rest_table)
 **Question 1 (3 points)**: Identify the 20 most common words in these reviews, first filtering out the stopwords using an anti_join as shown in the class script for text mining. You can use the top_n function to select the 20 most common words. Use the arrange function to order your results from highest to lowest as shown in the table above. Use kable to call the table with your results when done.
 
 ```{r}
-#Code goes here.
+yelp_words<-yelp_data%>%
+  unnest_tokens(word, text)
+
+bing_sentiment<-get_sentiments("bing")
+head(bing_sentiment)
+
+yelp_sentiment<-yelp_words%>%
+  inner_join(bing_sentiment) %>% #This keeps only words in both lists
+  anti_join(stop_words) %>%
+  group_by(word,sentiment) %>%
+  summarise(count=n())
+
+top_20<-yelp_sentiment%>%
+  group_by(sentiment)%>%
+  top_n(20)%>%
+  arrange(-count)
+
+kable(head(top_20))
 ```
 
 **Question 2 (2 points)**: Using ggplot, create a bar plot showing the frequency of these most common words. The class script on text mining has an example of how to do this using geom_col. Note that you'll have to use the reorder function (shown in the class script on text mining) to order these bars from high to low values.
 
 ```{r}
-#Code goes here
+ggplot(top_20,aes(reorder(word,count), count, fill = sentiment)) + 
+  geom_col()+
+  facet_wrap(~sentiment,scales="free_y")+
+  coord_flip()
 ```
 
 
 **Question 3 (5 points)**: Now let's compare two types of restaurants. Filter the dataset so you just have restaurants with *one* or *five* stars based on reviews (see the "stars" variable). Using the same process of question 1, identify the 20 most common words (not counting stop words) in each type of review (one/five star). Use kable to call the head of your table when done.
 
 ```{r}
-#Code goes here
+# 20 of 1 star reviews AND 20 of 5 star
+rest_by_rating<-yelp_data%>%
+  filter(stars == 1.0 | stars == 5.0)%>%
+  select(text, name, stars)%>%
+  unnest_tokens(word,text)%>%
+  anti_join(stop_words)%>%
+  group_by(word, name, stars)%>%
+  summarise(count = n())%>%
+  top_n(20)%>%
+  arrange(-count)
+
+kable(head(rest_by_rating))
 ```
 
 
 **Question 4 (2 points)**: Looking at your results in question 3, identify *two* notable difference in the words used for one star and five star reviewed restaurants.
 
-{Your response goes here}
+{One noticable trend is that most of the words for the 5 star restaurants are fairly inocuous and only really pertain to food styles and whats served at a particular restaurant. On the other hand, the words associated with the 1 star restaurants pertain more to customer experience. }
 
 **Question 5 (3 points)**: Which burger restaurants had the most positive reviews? Filter the dataset so you only have restaurants classified as Burger (meaning they have a 1 in that column). Tokenize the words used in reviews and join sentiments from the Bing sentiment dictionary. Use group_by and summarise to count the number of positive and negative words by restaurant name. Then make the data wider so that the counts of positive and negative words are separate variables. Call the head of your table when done.*
 
 ```{r}
-#Code goes here
+bestburger<-yelp_data%>%
+  filter(Burgers == 1)%>%
+  select(text, name, stars)%>%
+  unnest_tokens(word, text)%>%
+  inner_join(bing_sentiment) %>%
+  anti_join(stop_words)%>%
+  group_by(word, name, stars, sentiment)%>%
+  summarise(count = n())
+
+bestburger_wide<-bestburger%>%
+  pivot_wider(names_from=sentiment,
+              values_from=count,
+              values_fill=0)
+
+kable(head(bestburger_wide))  
 ```
 
 **Question 6 (3 points)**: Use mutate to calculate the percentage of positive and negative words for each restaurant, then filter to select restaurants with at least 1,500 total words. Which restaurant had the highest rate of positive words? Which had the highest negative rate? 
 
 ```{r}
-#Calculate the rate here
+yelp_words2<-yelp_data%>%
+  select(text, name)%>%
+  unnest_tokens(word, text)%>%
+  anti_join(stop_words)
+
+yelp_sentiment2<-yelp_words2%>%
+  inner_join(bing_sentiment) %>% #This keeps only words in both lists
+  group_by(name, sentiment) %>%
+  summarise(count=n())%>%
+  #filter(count == 1500)%>%     Couldn't figure out how to filter the word count
+  ungroup()%>%
+  pivot_wider(names_from=sentiment,
+              values_from=count,
+              values_fill=0)
+
+rate_posneg<-yelp_sentiment2%>%
+  mutate(pos_rate=positive/(positive+negative))%>%
+  mutate(neg_rate=negative/(positive+negative))
+
+neg_up<-rate_posneg%>%
+  arrange(-neg_rate)
+
+pos_up<-rate_posneg%>%
+  arrange(-pos_rate)
+
+kable(head(rate_posneg))
 ```
 
 
-{List the two restaurants here.}
+{@ Dawn appears to have the highest rate of positive reviews. Pizza hut appears to have the most negative reviews.}
 
 **Question 7 (2 points)**: Assess the value of the analysis you did in questions 5 and 6. Do you think this is a valid way to measure restaurant quality? Why or why not? What's one additional improvement you would make to this analysis?
 
-{Your response goes here.}
+{I think this is a valid and objective way to analyze the data provided in order to come up with a hierarchy. If there were one improvement I would make, it would be to analyze sentiment at the sentence level as opposed to the word level. I think there is more chance for error by the computer when interpretting individual words. Certain reviews may be categorized as negative despite the contrary being true.}
