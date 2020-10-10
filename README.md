@@ -4,10 +4,10 @@ Complete the lab assignment by filling in the template. Knit it to a Github docu
 
 Question 1 (out of 3): 2. The question didn't ask you to break out or filter by sentiment.<p>
 Question 2 (out of 2): 1.5 See above<p>
-Question 3 (out of 5): 4. You're grouping by restaurant name here, which also wasn't in the question and keeps those word counts very low.<p>
+Question 3 (out of 5): 3. You're grouping by restaurant name here, which also wasn't in the question and keeps those word counts very low.<p>
 Question 4 (out of 2): 2<p>
 Question 5 (out of 3): 2. Similar grouping problems here--needed to NOT group by word, as you'll only get a count for each word rather than by sentiment.<p>
 Question 6 (out of 3): 2. It looks like this is for all restaurants, not burger places.<p>
 Question 7 (out of 2): 2. <p>
 <p>
-Total (out of 20): 15.5. You had some problems with grouping here in this analysis--let me know if you want to talk through what didn't work well.
+Total (out of 20): 14.5. You had some problems with grouping here in this analysis--let me know if you want to talk through what didn't work well.
